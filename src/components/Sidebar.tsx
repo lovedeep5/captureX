@@ -1,6 +1,17 @@
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "@clerk/nextjs";
+<<<<<<< HEAD
 import { Activity, Home, Settings, Trash, VideoIcon } from "lucide-react";
+=======
+import {
+  Activity,
+  HeartPulse,
+  Home,
+  Settings,
+  Trash,
+  VideoIcon,
+} from "lucide-react";
+>>>>>>> 154a21543e490f3003b73f2d15ac085f8ebe689c
 import Link from "next/link";
 import React from "react";
 import { Button } from "./ui/button";
