@@ -1,11 +1,11 @@
+import React from 'react';
+
 import {
   Card,
   CardDescription,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
-import React from "react";
+  CardTitle
+} from '@/components/ui/card';
 
 const videos = [
   {
@@ -53,8 +53,8 @@ const videos = [
     subtitle: "By Google",
     thumb: "images/ForBiggerBlazes.jpg",
     title: "For Bigger Blazes",
-  },
-];
+  }
+]
 
 const Library = () => {
   return (
@@ -78,7 +78,7 @@ const Library = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Library;
+export default Library

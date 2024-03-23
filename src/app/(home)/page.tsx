@@ -1,14 +1,14 @@
 import { Montserrat } from "next/font/google";
+import { Medal } from 'lucide-react';
 
-import { cn } from "@/lib/utils";
-import Navbar from "@/components/Navbar";
-import { Medal } from "lucide-react";
+import { cn } from '@/lib/utils';
+import Navbar from '@/components/Navbar';
 import { Button } from "@/components/ui/button";
 
 const montserrat = Montserrat({
   weight: "600",
   subsets: ["latin"],
-});
+})
 
 const Home = () => {
   return (
@@ -33,7 +33,7 @@ const Home = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home
