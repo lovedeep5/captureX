@@ -1,13 +1,15 @@
 "use client";
-import { cn } from "@/lib/utils";
-import { Menu } from "lucide-react";
-import { useAuth } from "@clerk/nextjs";
-import React from "react";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import Sidebar from "./Sidebar";
+import { Menu } from 'lucide-react';
+import { useAuth } from '@clerk/nextjs';
+import React from 'react';
+
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import Sidebar from './Sidebar';
+
+import { cn } from '@/lib/utils';
 
 const MobileNavbar = () => {
-  const { userId } = useAuth();
+  const { userId } = useAuth()
   return (
     <Sheet>
       <SheetTrigger>
@@ -19,7 +21,7 @@ const MobileNavbar = () => {
         <Sidebar />
       </SheetContent>
     </Sheet>
-  );
-};
+  )
+}
 
-export default MobileNavbar;
+export default MobileNavbar

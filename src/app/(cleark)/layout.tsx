@@ -5,7 +5,7 @@ const clearkLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="h-full flex justify-center items-center bg-teal-50">
       {children}
     </div>
-  );
-};
+  )
+}
 
-export default clearkLayout;
+export default clearkLayout

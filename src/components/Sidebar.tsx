@@ -1,9 +1,11 @@
-import { cn } from "@/lib/utils";
-import { SignOutButton } from "@clerk/nextjs";
-import { Activity, Home, Settings, Trash, VideoIcon } from "lucide-react";
-import Link from "next/link";
-import React from "react";
-import { Button } from "./ui/button";
+import { SignOutButton } from '@clerk/nextjs';
+import { Activity, Home, Settings, Trash, VideoIcon } from 'lucide-react';
+import Link from 'next/link';
+import React from 'react';
+
+import { Button } from './ui/button';
+
+import { cn } from '@/lib/utils';
 
 const routes = [
   {
@@ -35,8 +37,8 @@ const routes = [
     link: "/activity",
     icon: Activity,
     color: "text-emerald-500",
-  },
-];
+  }
+]
 
 const Sidebar = () => {
   return (
@@ -57,7 +59,7 @@ const Sidebar = () => {
         <SignOutButton />
       </Button>
     </div>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar

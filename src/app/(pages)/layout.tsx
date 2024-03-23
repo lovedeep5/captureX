@@ -1,8 +1,9 @@
+import { SignOutButton } from '@clerk/nextjs';
+import React from 'react';
+
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { SignOutButton } from "@clerk/nextjs";
-import React from "react";
 
 const PagesLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -15,7 +16,7 @@ const PagesLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="md:pl-72">{children}</div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PagesLayout;
+export default PagesLayout
