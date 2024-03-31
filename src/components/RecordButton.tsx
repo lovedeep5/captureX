@@ -3,19 +3,25 @@ import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { useAppSelector, useAppDispatch } from "@/lib/hooks";
+import { setStream, setRecording } from "@/lib/features/recordingSlice";
+
 const RecordButton: React.FC = () => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const dispatch = useAppDispatch();
+  const { isRecording, stream } = useAppSelector((state) => state?.recording);
 
   const startRecording = async () => {
-    setIsRecording(true);
+    dispatch(setRecording(true));
+
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
       });
-      setStream(stream);
+      console.log("stream ===>", stream);
+
+      dispatch(setStream(stream));
 
       const recorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
@@ -38,12 +44,12 @@ const RecordButton: React.FC = () => {
         a.click();
 
         window.URL.revokeObjectURL(url);
-        setStream(null);
-        setIsRecording(false);
+        dispatch(setStream(null));
+        dispatch(setRecording(false));
       };
 
       recorder.start();
-      setIsRecording(true);
+      dispatch(setRecording(true));
     } catch (error) {
       console.error("Error starting recording:", error);
     }
@@ -52,7 +58,7 @@ const RecordButton: React.FC = () => {
   const stopRecording = () => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
-      setIsRecording(false);
+      dispatch(setRecording(false));
     }
   };
 

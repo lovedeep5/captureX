@@ -5,20 +5,24 @@ import type { RootState } from "../store";
 // Define a type for the slice state
 interface RecordingState {
   isRecording: boolean;
+  stream: MediaStream | null;
 }
 
 // Define the initial state using that type
 const initialState: RecordingState = {
   isRecording: false,
+  stream: null,
 };
 
 export const recordingSlice = createSlice({
   name: "recording",
-  // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
     setRecording: (state, action: PayloadAction<boolean>) => {
       state.isRecording = action.payload;
+    },
+    setStream: (state, action: PayloadAction<MediaStream | null>) => {
+      state.stream = action.payload;
     },
     // increment: (state) => {
     //   state.value += 1;
@@ -33,9 +37,9 @@ export const recordingSlice = createSlice({
   },
 });
 
-export const { setRecording } = recordingSlice.actions;
+export const { setRecording, setStream } = recordingSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
-export const selectCount = (state: RootState) => state.recording.isRecording;
+export const selectRecording = (state: RootState) => state.recording;
 
 export default recordingSlice.reducer;
