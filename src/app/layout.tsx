@@ -5,17 +5,17 @@ import StoreProvider from "./(redux)/StoreProvider";
 
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Capture",
   description: "Record video and share easily",
-};
+}
 
-export default function RootLayout({
-  children,
+export default function RootLayout ({
+  children
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <ClerkProvider>
@@ -25,5 +25,5 @@ export default function RootLayout({
         </body>
       </html>
     </ClerkProvider>
-  );
+  )
 }
