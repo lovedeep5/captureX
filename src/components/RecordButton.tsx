@@ -1,15 +1,16 @@
 "use client";
 import React, { useState, useRef } from "react";
+
+import { useAppSelector, useAppDispatch } from "@/lib/hooks";
+import { setRecording } from "@/lib/features/recordingSlice";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { useAppSelector, useAppDispatch } from "@/lib/hooks";
-import { setStream, setRecording } from "@/lib/features/recordingSlice";
-
 const RecordButton: React.FC = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const dispatch = useAppDispatch();
-  const { isRecording, stream } = useAppSelector((state) => state?.recording);
+  const { isRecording } = useAppSelector((state) => state?.recording);
 
   const startRecording = async () => {
     dispatch(setRecording(true));
@@ -19,9 +20,8 @@ const RecordButton: React.FC = () => {
         video: true,
         audio: true,
       });
-      console.log("stream ===>", stream);
 
-      dispatch(setStream(stream));
+      streamRef.current = stream;
 
       const recorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
@@ -44,7 +44,6 @@ const RecordButton: React.FC = () => {
         a.click();
 
         window.URL.revokeObjectURL(url);
-        dispatch(setStream(null));
         dispatch(setRecording(false));
       };
 
@@ -55,32 +54,16 @@ const RecordButton: React.FC = () => {
     }
   };
 
-  const stopRecording = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      dispatch(setRecording(false));
-    }
-  };
-
   return (
     <div>
-      {/* Button if recording already started */}
       <Button
-        variant="destructive"
+        variant={isRecording ? "destructive" : "primary"}
         size="lg"
-        className={cn("relative", { hidden: !isRecording })}
-        onClick={stopRecording}
-      >
-        Stop Recording
-      </Button>
-      {/* Button if recording yet to start */}
-      <Button
-        variant="primary"
-        size="lg"
-        className={cn("relative", { hidden: isRecording })}
+        className={cn("relative")}
         onClick={startRecording}
+        disabled={isRecording}
       >
-        Start Recording
+        {isRecording ? "Recording..." : "Start Recording"}
       </Button>
     </div>
   );
