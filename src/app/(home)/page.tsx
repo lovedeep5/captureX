@@ -1,15 +1,14 @@
 import { Montserrat } from "next/font/google";
-import { Medal } from 'lucide-react';
+import { Medal } from "lucide-react";
 
-import { cn } from '@/lib/utils';
-import Navbar from '@/components/Navbar';
+import { cn } from "@/lib/utils";
+import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import RecordButton from "@/components/RecordButton";
 
 const montserrat = Montserrat({
   weight: "600",
   subsets: ["latin"],
-})
+});
 
 const Home = () => {
   return (
@@ -32,12 +31,10 @@ const Home = () => {
           vitae ex modi minus maiores quo deleniti perspiciatis cumque dolorem
           tempora.
         </div>
-        <div className="mt-5">
-          <RecordButton />
-        </div>
+        <div className="mt-5">{/* <RecordButton /> */}</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
