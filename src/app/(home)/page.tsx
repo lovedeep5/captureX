@@ -4,6 +4,7 @@ import { Medal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
+import RecordButton from "@/components/RecordButton";
 
 const montserrat = Montserrat({
   weight: "600",

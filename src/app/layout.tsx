@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import StoreProvider from "./(redux)/StoreProvider";
+<<<<<<< HEAD
+=======
+
+import "./globals.css";
+>>>>>>> b750973de77ce357690c57dabaf7c90b3d4d5dee
 
 import "./globals.css";
 import RecordButton from "@/components/RecordButton";
