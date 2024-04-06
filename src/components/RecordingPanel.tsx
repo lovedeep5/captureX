@@ -90,34 +90,34 @@ const RecordingPanel: React.FC = () => {
         variant="primary"
         size="sm"
         onClick={startRecording}
-        className={cn({
+        className={cn("text-transparent", {
           hidden: isRecording && !isRecordingPaused,
         })}
       >
-        <Play />
+        <Play className="fill-white" />
       </Button>
 
       <Button
         variant="primary"
         size="sm"
         onClick={pauseRecording}
-        className={cn({
+        className={cn("text-transparent", {
           hidden: !isRecording || isRecordingPaused,
         })}
       >
-        <Pause />
+        <Pause className="fill-green-500" />
       </Button>
 
       <Button
         variant="primary"
         size="sm"
         onClick={stopRecording}
-        className={cn({
+        className={cn("text-transparent", {
           hidden: !isRecording,
           "animate-pulse": !isRecordingPaused,
         })}
       >
-        <StopCircle />
+        <StopCircle className="fill-red-500" />
       </Button>
     </div>
   );
