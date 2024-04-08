@@ -6,11 +6,27 @@ import { setRecording } from "@/lib/features/recordingSlice";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import axios from "axios";
 
 const RecordButton: React.FC = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const dispatch = useAppDispatch();
   const { isRecording } = useAppSelector((state) => state?.recording);
+
+  async function uploadFile(blob: Blob) {
+    console.log('came to upload file')
+    const file = new File([blob], "screen-recording.webm", { type: "video/webm" });
+    const apiUrl = "/api/video";
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await axios.post(apiUrl, formData);
+      console.log("Video uploaded successfully:", response.data);
+    } catch (error) {
+      console.error("Error uploading Video:", error);
+    }
+  }
 
   const startRecording = async () => {
     dispatch(setRecording(true));
@@ -45,6 +61,7 @@ const RecordButton: React.FC = () => {
 
         window.URL.revokeObjectURL(url);
         dispatch(setRecording(false));
+        uploadFile(blob)
       };
 
       recorder.start();
