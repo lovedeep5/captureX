@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const response = await Promise.all(
       files.map(async (file) => {
-        const Body = await file.arrayBuffer();
+        const Body = (await file.arrayBuffer()) as Buffer;
 
         return s3.send(
           new PutObjectCommand({
