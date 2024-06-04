@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef } from "react";
 import { Pause, Play, StopCircle } from "lucide-react";
+import axios from "axios";
 
 import { cn } from "@/lib/utils";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
@@ -16,6 +17,22 @@ const RecordingPanel: React.FC = () => {
   const { isRecording } = useAppSelector((state) => state?.recording);
 
   const dispatch = useAppDispatch();
+
+  async function uploadFile(blob: Blob) {
+    const file = new File([blob], `screen-recording-${Date.now()}.webm`, {
+      type: "video/webm",
+    });
+    const apiUrl = "/api/videos";
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post(apiUrl, formData);
+      console.log("Video uploaded successfully:", response.data);
+    } catch (error) {
+      console.error("Error uploading Video:", error);
+    }
+  }
 
   const startRecording = async () => {
     if (isRecordingPaused) {
@@ -50,11 +67,12 @@ const RecordingPanel: React.FC = () => {
         document.body.appendChild(a);
         a.style.display = "none";
         a.href = url;
-        a.download = "screen-recording.webm";
+        a.download = `screen-recording-${Date.now()}.webm`;
         a.click();
 
         window.URL.revokeObjectURL(url);
         dispatch(setRecording(false));
+        uploadFile(blob);
       };
 
       recorder.start();
