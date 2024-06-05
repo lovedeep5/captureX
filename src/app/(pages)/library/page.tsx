@@ -16,7 +16,7 @@ interface recordingsType {
 
 const Library = () => {
   const [recordings, setRecordings] = useState<recordingsType[]>([]);
-  useState(() => {
+  useEffect(() => {
     const getRecordings = async () => {
       const request = await axios.get("/api/videos");
       if (request.status === 200) {
