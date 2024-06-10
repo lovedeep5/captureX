@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { setRecording } from "@/lib/features/recordingSlice";
 import { uploadFile } from "@/helpers";
@@ -10,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 export const useVideoRecording = (): useVideoRecordingType => {
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null); // New ref for MediaRecorder
+  const router = useRouter();
 
   const [isRecordingPaused, setIsRecordingPaused] = useState<boolean>(false);
   const [recordings, setRecordings] = useState<recordingsType[]>([]);
@@ -53,7 +55,7 @@ export const useVideoRecording = (): useVideoRecordingType => {
         }
       };
 
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         const blob = new Blob(chunks, { type: "video/webm" });
         const url = URL.createObjectURL(blob);
 
@@ -66,7 +68,8 @@ export const useVideoRecording = (): useVideoRecordingType => {
 
         window.URL.revokeObjectURL(url);
         dispatch(setRecording(false));
-        uploadFile(blob);
+        const uploadFileResponse = await uploadFile(blob);
+        router.push(`/share/${uploadFileResponse?.uuid}`);
       };
 
       recorder.start();

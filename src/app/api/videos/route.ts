@@ -9,6 +9,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { auth } from "@clerk/nextjs";
+import prismadb from "@/lib/prismadb";
 
 const Bucket = process.env.AMPLIFY_BUCKET as string;
 const s3 = new S3Client({
@@ -28,22 +29,32 @@ export async function POST(request: NextRequest) {
     }
     const formData = await request.formData();
     const files = formData.getAll("file") as File[];
+    let uuid;
 
     const response = await Promise.all(
       files.map(async (file) => {
         const Body = (await file.arrayBuffer()) as Buffer;
+        const fileName = `${userId}/${file.name}`;
+        uuid = crypto.randomUUID();
+        const recording = await prismadb.Recordings.create({
+          data: {
+            userId,
+            s3_key: fileName,
+            uuid,
+          },
+        });
 
         return s3.send(
           new PutObjectCommand({
             Bucket,
-            Key: `${userId}/${file.name}`,
+            Key: fileName,
             Body,
           })
         );
       })
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json({ response, uuid });
   } catch (error) {
     return new NextResponse("Internal error", { status: 500 });
   }
@@ -67,7 +78,14 @@ export async function GET() {
             new GetObjectCommand({ Bucket, Key: item.Key }),
             { expiresIn: 3600 }
           );
-          return { Key: item.Key, url };
+          const recording = await prismadb.Recordings.findFirst({
+            where: {
+              s3_key: item.Key,
+              userId,
+            },
+          });
+
+          return { Key: item.Key, url, uuid: recording?.uuid };
         }
       })
     );

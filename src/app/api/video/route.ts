@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import prismadb from "@/lib/prismadb";
 
 const Bucket = process.env.AMPLIFY_BUCKET as string;
 const s3 = new S3Client({
@@ -19,10 +20,15 @@ export async function GET(request: NextRequest) {
     if (!key || typeof key !== "string") {
       return new NextResponse("File name is required!", { status: 400 });
     }
+    const recording = await prismadb.Recordings.findUnique({
+      where: {
+        uuid: key,
+      },
+    });
 
     const command = new GetObjectCommand({
       Bucket,
-      Key: key,
+      Key: recording?.s3_key,
     });
 
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour

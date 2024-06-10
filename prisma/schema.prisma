@@ -13,10 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
+
+model Recordings {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @unique
-  email String @unique
+  userId String 
+  s3_key String
+  uuid String @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

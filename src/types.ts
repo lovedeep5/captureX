@@ -10,6 +10,7 @@ export interface useVideoRecordingType {
 export interface recordingsType {
   Key: string;
   url: string;
+  uuid: string;
 }
 
 export interface videoUrl {

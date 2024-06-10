@@ -22,15 +22,8 @@ const Library = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 pb-10">
         {recordings?.length ? (
           recordings?.map((video) => {
-            const videoName = getStringByPatren(
-              video.Key,
-              REGEX_VIDEO_NAME_FROM_S3_KEY
-            );
-
-            const url = video.Key.replace("/", "__").split(".")[0];
-
             return (
-              <Link key={video.Key} href={"/share/" + url}>
+              <Link key={video.Key} href={"/share/" + video?.uuid}>
                 <Card className="rounded-sm hover:bg-muted/20 transition cursor-pointer">
                   <video
                     className="w-full rounded-t-sm"
