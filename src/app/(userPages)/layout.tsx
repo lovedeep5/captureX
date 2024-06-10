@@ -1,5 +1,5 @@
-import { SignOutButton } from "@clerk/nextjs";
-import React from "react";
+import { SignOutButton } from '@clerk/nextjs';
+import React from 'react';
 
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
@@ -10,10 +10,13 @@ const PagesLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="h-full relative">
       <Navbar />
       <div className="w-full pt-14">
-        <div>{children}</div>
+        <div className="hidden md:flex md:flex-col md:w-72 md:fixed md:top-14 md:bottom-0 md:px-4 bg-gray-900">
+          <Sidebar />
+        </div>
+        <div className="md:pl-72">{children}</div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PagesLayout;
+export default PagesLayout

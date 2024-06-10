@@ -4,7 +4,6 @@ import { Inter } from "next/font/google";
 import StoreProvider from "./(redux)/StoreProvider";
 
 import "./globals.css";
-import RecordButton from "@/components/RecordButton";
 import RecordingPanel from "@/components/RecordingPanel";
 
 const inter = Inter({ subsets: ["latin"] });
