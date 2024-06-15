@@ -19,6 +19,7 @@ model Recordings {
   userId String 
   s3_key String
   uuid String @unique
+  title String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

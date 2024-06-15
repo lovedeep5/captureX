@@ -36,11 +36,12 @@ export async function POST(request: NextRequest) {
         const Body = (await file.arrayBuffer()) as Buffer;
         const fileName = `${userId}/${file.name}`;
         uuid = crypto.randomUUID();
-        const recording = await prismadb.Recordings.create({
+        const recording = await prismadb.recordings.create({
           data: {
             userId,
             s3_key: fileName,
             uuid,
+            title: fileName,
           },
         });
 
@@ -66,7 +67,6 @@ export async function GET() {
     if (!userId) {
       return new NextResponse("Unauthorised", { status: 401 });
     }
-    // const userId = "user_2dbSjatI0Ge1iqsViDIuskdWCxY";
     const listCommand = new ListObjectsCommand({ Bucket, Prefix: userId });
     const response: ListObjectsCommandOutput = await s3.send(listCommand);
 
@@ -78,14 +78,19 @@ export async function GET() {
             new GetObjectCommand({ Bucket, Key: item.Key }),
             { expiresIn: 3600 }
           );
-          const recording = await prismadb.Recordings.findFirst({
+          const recording = await prismadb.recordings.findFirst({
             where: {
               s3_key: item.Key,
               userId,
             },
           });
 
-          return { Key: item.Key, url, uuid: recording?.uuid };
+          return {
+            Key: item.Key,
+            url,
+            uuid: recording?.uuid,
+            title: recording?.title,
+          };
         }
       })
     );

@@ -1,34 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { setRecording } from "@/lib/features/recordingSlice";
 import { uploadFile } from "@/helpers";
 
-import { recordingsType, useVideoRecordingType } from "@/types";
-import { getAllVideos } from "@/gatways/video";
+import { useVideoRecordingType } from "@/types";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 
 export const useVideoRecording = (): useVideoRecordingType => {
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null); // New ref for MediaRecorder
   const router = useRouter();
-
   const [isRecordingPaused, setIsRecordingPaused] = useState<boolean>(false);
-  const [recordings, setRecordings] = useState<recordingsType[]>([]);
 
   const { isRecording } = useAppSelector((state) => state?.recording);
 
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    const getRecordings = async () => {
-      const request = await getAllVideos();
-      if (request.status === 200) {
-        setRecordings(request?.data);
-      }
-    };
-    getRecordings();
-  }, []);
 
   const startRecording = async () => {
     if (isRecordingPaused) {
@@ -105,6 +92,5 @@ export const useVideoRecording = (): useVideoRecordingType => {
     startRecording,
     pauseRecording,
     stopRecording,
-    recordings,
   };
 };
