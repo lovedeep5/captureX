@@ -39,9 +39,12 @@ export async function GET(request: NextRequest) {
 
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
 
-    return new NextResponse(JSON.stringify({ url: signedUrl }), {
-      status: 200,
-    });
+    return new NextResponse(
+      JSON.stringify({ url: signedUrl, title: recording?.title }),
+      {
+        status: 200,
+      }
+    );
   } catch (err) {
     console.error("Error generating signed URL:", err);
     return new NextResponse("Internal error", { status: 500 });

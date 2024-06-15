@@ -1,10 +1,15 @@
+import { AxiosResponse } from "axios";
 import { uploadVideo } from "./gatways/video";
+import Link from "next/link";
 
 export const getStringByPatren = (str: string, pattren: RegExp) => {
   return str.match(pattren)?.[1] || "";
 };
 
-export const uploadFile = async (blob: Blob) => {
+export const uploadFile = async (
+  url: string,
+  blob: Blob
+): Promise<AxiosResponse<any>> => {
   const file = new File([blob], `screen-recording-${Date.now()}.webm`, {
     type: "video/webm",
   });
@@ -13,8 +18,7 @@ export const uploadFile = async (blob: Blob) => {
   formData.append("file", file);
 
   try {
-    const response = await uploadVideo(formData);
-    return response?.data;
+    return await uploadVideo(formData);
   } catch (error) {
     return error;
   }

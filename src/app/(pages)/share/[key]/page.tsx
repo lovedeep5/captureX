@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 import useSWR from "swr";
 import { getVideo } from "@/gatways/video";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ShareVideo = ({ params: { key } }: { params: { key: string } }) => {
   const { data, isLoading, error } = useSWR("/api/video", () => getVideo(key));
+  console.log("data", data);
 
   if (error) {
     return (
@@ -24,7 +25,10 @@ const ShareVideo = ({ params: { key } }: { params: { key: string } }) => {
           </div>
         </div>
       ) : (
-        <video src={data?.data?.url} className="w-2/4 rounded-xl" controls />
+        <div className="flex justify-center items-center flex-col ">
+          <video src={data?.data?.url} className="w-2/4 rounded-xl" controls />
+          <h1 className="text-muted-forground mt-4">{data?.data?.title}</h1>
+        </div>
       )}
     </div>
   );

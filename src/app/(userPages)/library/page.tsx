@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import useSWR, { mutate } from "swr";
 import Link from "next/link";
-import { Edit, ExternalLink, Trash } from "lucide-react";
+import { Edit, ExternalLink, Loader, Trash } from "lucide-react";
 
 import {
   Card,
@@ -12,25 +12,25 @@ import {
 } from "@/components/ui/card";
 
 import { deleteVideo, getAllVideos, updateVideoTitle } from "@/gatways/video";
-import { deleteAlertType, recordingsType } from "@/types";
+import { RenameAlertType, deleteAlertType, recordingsType } from "@/types";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogContent,
-} from "@/components/ui/alert-dialog";
+
 import { S3_VIDEOS } from "@/constants";
-import { rename } from "fs";
+import Alert from "@/components/Alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Library = () => {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState<deleteAlertType>({
     open: false,
     id: null,
+    inProgress: false,
+  });
+
+  const [isRenameAlertOpen, setIsRenameAlertOpen] = useState<RenameAlertType>({
+    open: false,
+    id: null,
+    title: null,
     inProgress: false,
   });
 
@@ -62,17 +62,58 @@ const Library = () => {
     setIsDeleteAlertOpen({ open: false, id: null, inProgress: false });
   };
 
-  const renameVideo = async (key: string, title: string) => {
-    if (!key || !title) return;
-    const formData = new FormData();
-    formData.append("title", title);
+  const renameVideo = async (key: string) => {
+    if (!key) return;
+    setIsRenameAlertOpen((prev) => ({
+      ...prev,
+      open: true,
+      id: key,
+    }));
+  };
 
-    const response = await updateVideoTitle(key, formData);
+  const handleRenameInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setIsRenameAlertOpen((prev) => ({
+      ...prev,
+      title: e.target.value,
+    }));
+  };
+
+  const handleRenameVideoCancle = () => {
+    setIsRenameAlertOpen({
+      open: false,
+      title: null,
+      id: null,
+      inProgress: false,
+    });
+  };
+
+  const handleRenameVideoConfirm = async () => {
+    if (!isRenameAlertOpen.title || !isRenameAlertOpen.id) {
+      return;
+    }
+    setIsRenameAlertOpen((prev) => ({
+      ...prev,
+      inProgress: true,
+    }));
+    const formData = new FormData();
+    formData.append("title", isRenameAlertOpen.title);
+
+    const response = await updateVideoTitle(isRenameAlertOpen.id, formData);
     mutate(S3_VIDEOS);
+    setIsRenameAlertOpen({
+      open: false,
+      title: null,
+      id: null,
+      inProgress: false,
+    });
   };
 
   if (isLoading) {
-    return <p className="p-4 text-gray-900">Loading...</p>;
+    return (
+      <div className="p-4 text-gray-900">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
   if (error) {
@@ -114,7 +155,7 @@ const Library = () => {
                       </Button>
                       <Button
                         variant="primary"
-                        onClick={() => renameVideo(video?.uuid, "name 123")}
+                        onClick={() => renameVideo(video?.uuid)}
                       >
                         <Edit className="w-5 h-5" />
                       </Button>
@@ -128,28 +169,38 @@ const Library = () => {
           <p className="text-sm">No Recordings found...</p>
         )}
       </div>
-      <AlertDialog open={isDeleteAlertOpen?.open}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle> ❌ Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this video? This action cannot be
-              undone. Your video will be permanently removed from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeleteAlertCancle}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteVideoConfirm}
-              disabled={isDeleteAlertOpen?.inProgress}
-            >
-              {isDeleteAlertOpen?.inProgress ? "In Progresss" : "Continue"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Alert
+        open={isDeleteAlertOpen.open}
+        title="❌ Are you absolutely sure?"
+        discription="This action cannot be undone. Your video will be permanently
+        removed from our servers."
+        cancleHandler={handleDeleteAlertCancle}
+        confirmHandler={handleDeleteVideoConfirm}
+        inProgress={isDeleteAlertOpen?.inProgress}
+      />
+      <Alert
+        open={isRenameAlertOpen.open}
+        title=" ✏️ Want to rename your video?"
+        discription=""
+        cancleHandler={handleRenameVideoCancle}
+        confirmHandler={handleRenameVideoConfirm}
+        inProgress={isRenameAlertOpen?.inProgress}
+      >
+        <div>
+          <Label
+            htmlFor="video_title"
+            className="text-sm text-muted-foreground"
+          >
+            Enter new name and press continue
+          </Label>
+          <Input
+            type="text"
+            name="video_title"
+            id="video_title"
+            onChange={handleRenameInputChange}
+          />
+        </div>
+      </Alert>
     </div>
   );
 };

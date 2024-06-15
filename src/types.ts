@@ -24,3 +24,20 @@ export interface deleteAlertType {
   id: string | null;
   inProgress: boolean;
 }
+
+export interface RenameAlertType {
+  open: boolean;
+  id: string | null;
+  title: string | null;
+  inProgress: boolean;
+}
+
+export interface AlertType {
+  open: boolean;
+  title: string;
+  discription: string;
+  cancleHandler: () => void;
+  confirmHandler: () => void;
+  inProgress: boolean;
+  children?: React.ReactNode;
+}

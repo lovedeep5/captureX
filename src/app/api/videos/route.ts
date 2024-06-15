@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
             userId,
             s3_key: fileName,
             uuid,
-            title: fileName,
+            title: file.name,
           },
         });
 
