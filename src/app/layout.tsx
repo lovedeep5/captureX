@@ -5,7 +5,8 @@ import StoreProvider from "./(redux)/StoreProvider";
 
 import "./globals.css";
 import RecordingPanel from "@/components/RecordingPanel";
-
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -23,8 +24,16 @@ export default function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <StoreProvider>
-            <RecordingPanel />
-            {children}
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <RecordingPanel />
+              {children}
+            </ThemeProvider>
+            <Toaster />
           </StoreProvider>
         </body>
       </html>

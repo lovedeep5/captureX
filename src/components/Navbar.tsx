@@ -8,6 +8,7 @@ import MobileNavbar from "./MobileNavbar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
+import ModeToggle from "./ModeToggle";
 
 const Navbar = () => {
   const { userId } = auth();
@@ -24,7 +25,7 @@ const Navbar = () => {
               asChild
             >
               <Link href="/library">
-                <MonitorStop className="w-5 h-5 mr-2" /> Dashboard
+                <MonitorStop className="w-5 h-5 mr-2" /> Library
               </Link>
             </Button>
 
