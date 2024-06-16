@@ -1,8 +1,9 @@
 "use client";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import useSWR, { mutate } from "swr";
 import Link from "next/link";
-import { Edit, ExternalLink, Loader, Trash } from "lucide-react";
+import { Camera, Copy, Edit, ExternalLink, Loader, Trash } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 import {
   Card,
@@ -19,8 +20,10 @@ import { S3_VIDEOS } from "@/constants";
 import Alert from "@/components/Alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import DasboardHeader from "@/components/DasboardHeader";
 
 const Library = () => {
+  const { toast } = useToast();
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState<deleteAlertType>({
     open: false,
     id: null,
@@ -108,27 +111,35 @@ const Library = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-4 text-gray-900">
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
+  const handleCopyClick = (url : string) => {
+    const domain = window?.location?.origin;
+    navigator.clipboard.writeText(domain + url)
 
+     toast({
+        title: "Success",
+        description:
+          "Url copied to the cliboard"
+        });
+  }
+ 
   if (error) {
     return error;
   }
 
   return (
     <div className="p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 pb-10">
+      <DasboardHeader title="Library" descreption="You can find all your videos here" icon={Camera} iconColor="text-violet-500" bgColor="bg-teal-100"/>
+     {
+      isLoading ? <div className="p-4 text-gray-900">
+        <Loader className="animate-spin" />
+      </div> : <div>
+       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 pb-10">
         {data?.data?.length ? (
           data?.data?.map((video: recordingsType) => {
             return (
               <Card
                 key={video.Key}
-                className="rounded-sm hover:bg-muted/20 transition cursor-pointer"
+                className="rounded-xl hover:bg-muted/20 transition cursor-pointer overflow-hidden"
               >
                 <video
                   className="w-full rounded-t-sm"
@@ -136,28 +147,34 @@ const Library = () => {
                   controls={false}
                 ></video>
                 <CardHeader>
-                  <CardTitle className="text-md ">
+                  <CardTitle className="text-sm text-center font-medium">
                     {video?.title?.replaceAll("-", " ")}
                   </CardTitle>
 
                   <CardDescription>
-                    <div className="flex gap-2 mt-5">
-                      <Button variant="primary" asChild>
+                    <div className="flex gap-1 mt-2 justify-center items-center">
+                      <Button variant="gradient" size="rounded" asChild>
                         <Link href={"/share/" + video?.uuid}>
                           <ExternalLink className="w-5 h-5" />
                         </Link>
                       </Button>
                       <Button
-                        variant="primary"
+                        variant="gradient" size="rounded"
                         onClick={() => handleDeleteClick(video?.uuid)}
                       >
                         <Trash className="w-5 h-5" />
                       </Button>
                       <Button
-                        variant="primary"
+                        variant="gradient" size="rounded"
                         onClick={() => renameVideo(video?.uuid)}
                       >
                         <Edit className="w-5 h-5" />
+                      </Button>
+                      <Button
+                        variant="gradient" size="rounded"
+                        onClick={() => handleCopyClick("/share/" + video?.uuid)}
+                      >
+                        <Copy className="w-5 h-5" />
                       </Button>
                     </div>
                   </CardDescription>
@@ -201,6 +218,8 @@ const Library = () => {
           />
         </div>
       </Alert>
+     </div>
+     }
     </div>
   );
 };
