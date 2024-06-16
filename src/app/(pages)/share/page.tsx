@@ -6,7 +6,7 @@ const Share = () => {
   const router = useRouter();
   useEffect(() => {
     router.push("/");
-  }, []);
+  }, [router]);
 
   return <div>Redirecting to home...</div>;
 };

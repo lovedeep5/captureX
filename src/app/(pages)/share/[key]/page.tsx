@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const ShareVideo = ({ params: { key } }: { params: { key: string } }) => {
   const { data, isLoading, error } = useSWR("/api/video", () => getVideo(key));
-  console.log("data", data);
 
   if (error) {
     return (
