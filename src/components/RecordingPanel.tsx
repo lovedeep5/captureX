@@ -1,5 +1,5 @@
 "use client";
-import { useReactMediaRecorder } from "react-media-recorder";
+import { useReactMediaRecorder } from "react-media-recorder-2";
 import { useRouter } from "next/navigation";
 
 import { Pause, Play, StopCircle } from "lucide-react";
