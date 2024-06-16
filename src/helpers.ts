@@ -1,6 +1,5 @@
 import { AxiosResponse } from "axios";
 import { uploadVideo } from "./gatways/video";
-import Link from "next/link";
 
 export const getStringByPatren = (str: string, pattren: RegExp) => {
   return str.match(pattren)?.[1] || "";
@@ -20,6 +19,6 @@ export const uploadFile = async (
   try {
     return await uploadVideo(formData);
   } catch (error) {
-    return error;
+    throw new Error("Uploading failed")
   }
 };
