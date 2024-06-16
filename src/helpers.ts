@@ -9,7 +9,7 @@ export const getStringByPatren = (str: string, pattren: RegExp) => {
 export const uploadFile = async (
   url: string,
   blob: Blob
-): Promise<AxiosResponse<any>> => {
+): Promise<AxiosResponse<any> | Error > => {
   const file = new File([blob], `screen-recording-${Date.now()}.webm`, {
     type: "video/webm",
   });
