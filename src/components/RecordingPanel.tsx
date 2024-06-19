@@ -2,7 +2,7 @@
 import { useReactMediaRecorder } from "react-media-recorder-2";
 import { useRouter } from "next/navigation";
 
-import { Pause, Play, StopCircle } from "lucide-react";
+import { Mic, MicOff, Pause, Play, StopCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useAuth } from "@clerk/nextjs";
@@ -42,6 +42,9 @@ const RecordingPanel: React.FC = () => {
     stopRecording,
     pauseRecording,
     resumeRecording,
+    isAudioMuted,
+    muteAudio,
+    unMuteAudio
   } = useReactMediaRecorder({
     video: true,
     screen: true,
@@ -69,6 +72,8 @@ const RecordingPanel: React.FC = () => {
     }
     startRecording();
   };
+
+  
 
   return (
     <div className="flex p-2 rounded-lg fixed z-[100] bottom-20 right-5 bg-primary">
@@ -104,6 +109,26 @@ const RecordingPanel: React.FC = () => {
         })}
       >
         <StopCircle className="fill-red-500" />
+      </Button>
+
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={muteAudio}
+        className={cn({ hidden: isAudioMuted })}
+        disabled={status !== 'recording'}
+        
+      >
+        <Mic />
+      </Button>
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={unMuteAudio}
+        className={cn({ hidden: !isAudioMuted })}
+        disabled={status !== 'recording'}
+      >
+        <MicOff />
       </Button>
     </div>
   );

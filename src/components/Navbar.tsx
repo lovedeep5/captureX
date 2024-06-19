@@ -8,20 +8,20 @@ import MobileNavbar from "./MobileNavbar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
-import ModeToggle from "./ModeToggle";
+import ModeToggle from "@/components/ModeToggle";
 
 const Navbar = () => {
   const { userId } = auth();
   return (
-    <div className="fixed w-full h-14 px-4 bg-white border-b shadow-sm flex items-center z-[99]">
+    <div className="fixed w-full h-14 px-4 bg-white border-b shadow-sm flex items-center z-[99] dark:bg-secondary">
       <div className="md:max-w-screen-2xl mx-auto flex justify-between item-center  w-full ">
         <Logo />
         <div className=" flex md:w-auto justify-between items-center space-x-4">
           <div className="space-x-4 w-full md:w-auto flex items-center justify-between ">
+            <ModeToggle />
             <Button
               className={cn({ hidden: !userId })}
-              variant="primary"
-              size="sm"
+              variant="outline"
               asChild
             >
               <Link href="/library">

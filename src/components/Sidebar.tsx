@@ -1,11 +1,12 @@
-import { SignOutButton } from '@clerk/nextjs';
-import { Activity, Home, Settings, Trash, VideoIcon } from 'lucide-react';
-import Link from 'next/link';
-import React from 'react';
+import { SignOutButton } from "@clerk/nextjs";
+import { Activity, Home, Settings, Trash, VideoIcon } from "lucide-react";
+import Link from "next/link";
+import React from "react";
 
-import { Button } from './ui/button';
+import { Button } from "./ui/button";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
+import { Badge } from "./ui/badge";
 
 const routes = [
   {
@@ -13,32 +14,37 @@ const routes = [
     link: "/",
     icon: Home,
     color: "text-sky-500",
+    commingSoon: false,
   },
   {
     label: "Library",
     link: "/library",
     icon: VideoIcon,
     color: "text-violet-500",
+    commingSoon: false,
   },
   {
     label: "Archive",
-    link: "/archive",
+    link: "#",
     icon: Trash,
     color: "text-pink-700",
+    commingSoon: true,
   },
   {
     label: "Settings",
-    link: "/settings",
+    link: "#",
     icon: Settings,
     color: "text-orange-700",
+    commingSoon: true,
   },
   {
     label: "Activity",
-    link: "/activity",
+    link: "#",
     icon: Activity,
     color: "text-emerald-500",
-  }
-]
+    commingSoon: true,
+  },
+];
 
 const Sidebar = () => {
   return (
@@ -53,13 +59,18 @@ const Sidebar = () => {
             <route.icon className={cn("w-5 h-5 mr-3", route.color)} />{" "}
             {route.label}
           </div>
+          {route.commingSoon && (
+            <Badge className="bg-sky-800 dark:text-white/80">
+              Comming Soon
+            </Badge>
+          )}
         </Link>
       ))}
       <Button asChild className="absolute bottom-5 w-full">
         <SignOutButton />
       </Button>
     </div>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;
