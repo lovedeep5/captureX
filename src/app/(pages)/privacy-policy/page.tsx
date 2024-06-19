@@ -14,10 +14,11 @@ const page = () => {
       <p className="mt-10">Welcome to {COMPANY_NAME}!</p>
 
       <p>
-        {COMPANY_NAME} (referred to as "we", "us", or "our") provides a screen
-        recording and sharing service through our website. This Privacy Policy
-        explains how we collect, use, disclose, and safeguard your information
-        when you use our screen recording service.
+        {COMPANY_NAME} referred to as &quot;we&quot;, &quot;us&quot;, or
+        &quot;our&quot; provides a screen recording and sharing service through
+        our website. This Privacy Policy explains how we collect, use, disclose,
+        and safeguard your information when you use our screen recording
+        service.
       </p>
       <h2 className="pt-5">1. Information We Collect</h2>
       <p>
