@@ -1,99 +1,101 @@
-"use client";
-import { useRef, useState } from "react";
-import useRecorder from "@/hooks/recorder";
-import { Button } from "@/components/ui/button";
-import VideoJS from "@/components/VideoPlayer";
+"use client"; // Mark as Client Component
 
-const videoJsOptions = {
-  autoplay: true,
-  controls: true,
-  responsive: true,
-  fluid: true,
-  sources: [
-    {
-      src: "https://capturex-local.s3.ap-southeast-2.amazonaws.com/videos/hsl/user_2dbSjatI0Ge1iqsViDIuskdWCxY_1738150174888_h2q5j/playlist.m3u8",
-      type: "application/mpegURL",
-    },
-  ],
-};
+import { useState, useRef, useEffect, useCallback } from "react";
+import useRecorder from "@/hooks/recorder"; // Custom hook
+import { Button } from "@/components/ui/button"; // shadcn Button
+import { openSocket, closeSocket } from "@/lib/socket/sockets";
+import close from "@/lib/socket/close";
+import open from "@/lib/socket/open";
+import error from "@/lib/socket/error";
+import send from "@/lib/socket/send";
 
-const TestPage = () => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const { startRecording, stopRecording, pauseRecording, resumeRecording } =
+const RecorderComponent = () => {
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
+
+  const { start, stop, pause, resume, blobURL, cameraStream, socketRef } =
     useRecorder({
-      onStreamDataAvailable: async (event: BlobEvent) => {
-        if (event.data.size > 0) {
-          try {
-            console.log("Video Chunk Ready:", event.data);
-            const arrayBuffer = await event.data.arrayBuffer();
-            if (wsRef.current?.readyState === WebSocket.OPEN) {
-              wsRef.current.send(arrayBuffer);
-            } else {
-              console.warn("WebSocket is not open, chunk not sent");
-            }
-          } catch (error) {
-            console.error("Error sending video chunk:", error);
-          }
-        }
+      onChunkAvailable: async (chunk) => {
+        console.log("New chunk available:", chunk);
+        const arrayBuffer = await chunk.arrayBuffer();
+        send(socketRef, arrayBuffer);
       },
-      onStreamStop: () => {
-        closeSocketConnection();
-      },
+      onStartCallback: openSocket,
     });
 
-  const openSocketConnection = () => {
-    const socket = new WebSocket("ws://localhost:8080");
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-    socket.onopen = () => {
-      console.log("Connected to WebSocket");
-
-      // socket.send(JSON.stringify({ message: "Recording started" }));
-    };
-
-    socket.onclose = () => {
-      console.log("WebSocket closed");
-    };
-
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    wsRef.current = socket;
-    setWs(socket);
-  };
-
-  const closeSocketConnection = () => {
-    setTimeout(() => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    }, 5000);
-  };
-
-  const handleStartRecording = () => {
-    openSocketConnection();
-    startRecording();
-  };
-
-  const handleStopRecording = () => {
-    stopRecording();
-    closeSocketConnection();
-  };
+  // Update video source when blobURL changes
+  useEffect(() => {
+    if (videoRef.current && blobURL) {
+      videoRef.current.src = blobURL;
+    }
+  }, [blobURL]);
 
   return (
-    <div>
-      <div>Videos</div>
-      {/* <VideoJS options={videoJsOptions} ready={() => {}} /> */}
-      <VideoJS options={videoJsOptions} ready={() => {}} />
-      <div className="flex gap-4">
-        <Button onClick={handleStartRecording}>Record</Button>
-        <Button onClick={handleStopRecording}>Stop</Button>
-        <Button onClick={pauseRecording}>Pause</Button>
-        <Button onClick={resumeRecording}>Resume</Button>
+    <div className="p-4 space-y-4">
+      {/* Media Selection Checkboxes */}
+      <div className="space-y-2">
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={cameraEnabled}
+            onChange={(e) => setCameraEnabled(e.target.checked)}
+            className="w-4 h-4"
+          />
+          <span>Enable Camera</span>
+        </label>
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={micEnabled}
+            onChange={(e) => setMicEnabled(e.target.checked)}
+            className="w-4 h-4"
+          />
+          <span>Enable Microphone</span>
+        </label>
       </div>
+
+      {/* Recording Controls */}
+      <div className="flex space-x-2">
+        <Button
+          onClick={() => start({ camera: cameraEnabled, mic: micEnabled })}
+        >
+          Start
+        </Button>
+        <Button onClick={stop} variant="destructive">
+          Stop
+        </Button>
+        <Button onClick={pause} variant="secondary">
+          Pause
+        </Button>
+        <Button onClick={resume} variant="secondary">
+          Resume
+        </Button>
+      </div>
+
+      {/* Display Screen + Mic Recording */}
+      {blobURL && (
+        <video
+          ref={videoRef}
+          controls
+          className="w-full max-w-2xl rounded-lg shadow-md"
+        />
+      )}
+
+      {/* Display Camera Feed (if enabled) */}
+      {cameraStream && (
+        <video
+          ref={(video) => {
+            if (video) video.srcObject = cameraStream;
+          }}
+          autoPlay
+          muted
+          className="w-48 h-36 rounded-full shadow-md fixed bottom-4 right-4 border-2 border-gray-200"
+        />
+      )}
     </div>
   );
 };
 
-export default TestPage;
+export default RecorderComponent;

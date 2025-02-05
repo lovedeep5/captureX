@@ -1,119 +1,150 @@
-"use client";
-import React, { useState, useRef } from "react";
-import {
-  initialRecordingOptionsType,
-  UserRecorderTypes,
-  UseRecorderPropTypes,
-} from "../../types/recorder";
+"use client"; // Mark as Client Component
 
-const initialRecordingOptions = {
-  camera: true,
-  audio: true,
-  screen: true,
+import { useState, useCallback, useEffect, useRef } from "react";
+
+type UseRecorderProps = {
+  onChunkAvailable: (chunk: Blob) => void;
+  onStartCallback?: () => WebSocket;
+};
+
+type UseRecorderReturn = {
+  start: (options: { camera: boolean; mic: boolean }) => Promise<void>;
+  stop: () => void;
+  pause: () => void;
+  resume: () => void;
+  blobURL: string | null; // For screen + mic stream
+  cameraStream: MediaStream | null; // For camera feed (if enabled)
+  socketRef: WebSocket | null;
 };
 
 const useRecorder = ({
-  onStreamDataAvailable,
-  onStreamStop,
-}: UseRecorderPropTypes): UserRecorderTypes => {
-  const [recordingOptions, setRecordingOptions] =
-    useState<initialRecordingOptionsType>(initialRecordingOptions);
+  onChunkAvailable,
+  onStartCallback,
+}: UseRecorderProps): UseRecorderReturn => {
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [blobURL, setBlobURL] = useState<string | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]); // Store chunks for final video
+  const socketRef = useRef<WebSocket | null>(null);
+  const start = useCallback(
+    async (options: { camera: boolean; mic: boolean }) => {
+      try {
+        // Step 1: Get screen stream
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: options.mic, // Include mic if selected
+        });
 
-  const userScreenStream = useRef<MediaStream | null>(null);
-  const userScreenRecorder = useRef<MediaRecorder | null>(null);
+        // Step 2: Get camera stream (if enabled)
+        let cameraStream: MediaStream | null = null;
+        if (options.camera) {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false, // Camera mic is not included
+          });
+          setCameraStream(cameraStream);
+        }
 
-  const startRecording = async () => {
-    if (recordingOptions.camera === false && recordingOptions.screen === false)
-      return;
+        // Step 3: Combine screen and mic streams (if mic is enabled)
+        const streamsToRecord = [screenStream];
+        if (options.mic) {
+          const micStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          streamsToRecord.push(micStream);
+        }
 
-    try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: recordingOptions.screen,
-        audio: recordingOptions.audio,
-      });
+        const combinedStream = new MediaStream([
+          ...streamsToRecord.flatMap((stream) => stream.getTracks()),
+        ]);
 
-      userScreenStream.current = screenStream;
-      const screenRecorder = new MediaRecorder(screenStream, {
-        mimeType: "video/webm; codecs=vp9 ",
-        videoBitsPerSecond: 5000000,
-      });
-      userScreenRecorder.current = screenRecorder;
+        // Step 4: Initialize MediaRecorder for screen + mic stream
+        const recorder = new MediaRecorder(combinedStream, {
+          mimeType: "video/webm; codecs=vp9",
+        });
 
-      screenRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          // console.log("Screen recording chunk:", event.data);
-
-          if (onStreamDataAvailable) {
-            onStreamDataAvailable(event);
+        recorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            chunksRef.current.push(event.data); // Store chunks
+            if (onChunkAvailable) {
+              onChunkAvailable(event.data); // Notify parent component
+            }
           }
+        };
+        if (onStartCallback) {
+          const ws = onStartCallback();
+          socketRef.current = ws;
         }
-      };
 
-      screenRecorder.onstop = () => {
-        if (onStreamStop) {
-          onStreamStop();
-        }
-      };
+        recorder.onstop = () => {
+          // Create a final blob from all chunks
+          const finalBlob = new Blob(chunksRef.current, { type: "video/webm" });
+          setBlobURL(URL.createObjectURL(finalBlob)); // Set final blob URL
+          chunksRef.current = []; // Clear chunks
 
-      screenRecorder.start(1000 * 5);
-    } catch (error) {
-      console.error("Error occurred during the recording process:", error);
+          // Clean up resources
+          screenStream.getTracks().forEach((track) => track.stop());
+          if (cameraStream) {
+            cameraStream.getTracks().forEach((track) => track.stop());
+          }
+          combinedStream.getTracks().forEach((track) => track.stop());
+
+          //Cleanup
+          if (socketRef?.current) {
+            socketRef.current = null;
+          }
+        };
+
+        recorder.start(1000); // Emit a chunk every second
+        setMediaRecorder(recorder);
+      } catch (error) {
+        console.error("Error starting recording:", error);
+      }
+    },
+    [onChunkAvailable, onStartCallback]
+  );
+
+  const stop = useCallback(() => {
+    if (mediaRecorder) {
+      mediaRecorder.stop(); // This will trigger the onstop event
+      //Cleanup
+      if (socketRef?.current) {
+        socketRef.current = null;
+      }
     }
-  };
+  }, [mediaRecorder]);
 
-  const stopRecordingStream = (
-    stream: React.MutableRefObject<MediaStream | null>,
-    recorder: React.MutableRefObject<MediaRecorder | null>
-  ) => {
-    if (recorder?.current) {
-      recorder?.current?.stop();
+  const pause = useCallback(() => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.pause();
     }
+  }, [mediaRecorder]);
 
-    if (stream?.current) {
-      stream?.current?.getTracks().forEach((track) => track.stop());
+  const resume = useCallback(() => {
+    if (mediaRecorder && mediaRecorder.state === "paused") {
+      mediaRecorder.resume();
     }
+  }, [mediaRecorder]);
 
-    stream.current = null;
-    recorder.current = null;
-  };
-
-  const pauseRecordingStream = (
-    recorder: React.MutableRefObject<MediaRecorder | null>
-  ) => {
-    if (recorder.current) {
-      recorder.current.pause();
-    }
-  };
-
-  const resumeRecordingStream = (
-    recorder: React.MutableRefObject<MediaRecorder | null>
-  ) => {
-    if (recorder.current) {
-      recorder.current.resume();
-    }
-  };
-
-  const stopRecording = async () => {
-    stopRecordingStream(userScreenStream, userScreenRecorder);
-  };
-
-  const pauseRecording = () => {
-    pauseRecordingStream(userScreenRecorder);
-  };
-
-  const resumeRecording = () => {
-    resumeRecordingStream(userScreenRecorder);
-  };
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorder) {
+        mediaRecorder.stop(); // Stop recording on unmount
+      }
+    };
+  }, [mediaRecorder]);
 
   return {
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    resumeRecording,
-    userScreenStream,
-    recordingOptions,
-    setRecordingOptions,
-    screenRecorder: userScreenRecorder.current,
+    start,
+    stop,
+    pause,
+    resume,
+    blobURL,
+    cameraStream,
+    socketRef: socketRef?.current,
   };
 };
 
