@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const response = await Promise.all(
       files.map(async (file) => {
-        const Body = (await file.arrayBuffer()) as Buffer;
+        const Body = (await file.arrayBuffer()) as unknown as Buffer;
         const fileName = `${userId}/${file.name}`;
         uuid = crypto.randomUUID();
         const recording = await prismadb.recordings.create({
@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
             Bucket,
             Key: fileName,
             Body,
+            ContentType: "video/webm",
           })
         );
       })
