@@ -13,15 +13,16 @@ const RecorderComponent = () => {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
 
-  const { start, stop, pause, resume, blobURL, cameraStream, socketRef } =
-    useRecorder({
-      onChunkAvailable: async (chunk) => {
-        console.log("New chunk available:", chunk);
-        const arrayBuffer = await chunk.arrayBuffer();
-        send(socketRef, arrayBuffer);
-      },
-      onStartCallback: openSocket,
-    });
+  const { start, stop, pause, resume, blobURL, cameraStream } = useRecorder({
+    onChunkAvailable: async (chunk, socket) => {
+      console.log("New chunk available:", chunk);
+      const arrayBuffer = await chunk.arrayBuffer();
+      if (socket) {
+        send(socket, arrayBuffer);
+      }
+    },
+    onStartCallback: openSocket,
+  });
 
   const videoRef = useRef<HTMLVideoElement>(null);
 

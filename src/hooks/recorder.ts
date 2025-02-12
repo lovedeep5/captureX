@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
 type UseRecorderProps = {
-  onChunkAvailable: (chunk: Blob) => void;
+  onChunkAvailable: (chunk: Blob, socket: WebSocket | null) => void;
   onStartCallback?: () => WebSocket;
 };
 
@@ -14,7 +14,6 @@ type UseRecorderReturn = {
   resume: () => void;
   blobURL: string | null; // For screen + mic stream
   cameraStream: MediaStream | null; // For camera feed (if enabled)
-  socketRef: WebSocket | null;
 };
 
 const useRecorder = ({
@@ -69,7 +68,7 @@ const useRecorder = ({
           if (event.data.size > 0) {
             chunksRef.current.push(event.data); // Store chunks
             if (onChunkAvailable) {
-              onChunkAvailable(event.data); // Notify parent component
+              onChunkAvailable(event.data, socketRef.current); // Notify parent component
             }
           }
         };
@@ -79,6 +78,7 @@ const useRecorder = ({
         }
 
         recorder.onstop = () => {
+          setCameraStream(null);
           // Create a final blob from all chunks
           const finalBlob = new Blob(chunksRef.current, { type: "video/webm" });
           setBlobURL(URL.createObjectURL(finalBlob)); // Set final blob URL
@@ -93,6 +93,7 @@ const useRecorder = ({
 
           //Cleanup
           if (socketRef?.current) {
+            socketRef.current.close();
             socketRef.current = null;
           }
         };
@@ -144,7 +145,6 @@ const useRecorder = ({
     resume,
     blobURL,
     cameraStream,
-    socketRef: socketRef?.current,
   };
 };
 
