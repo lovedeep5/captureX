@@ -40,13 +40,17 @@ const RecordingPanel: React.FC = () => {
     pauseRecording,
     resumeRecording,
     isAudioMuted,
-    muteAudio,
-    unMuteAudio,
   } = useReactMediaRecorder({
     video: recordOptions.screen,
     screen: recordOptions.screen,
-    audio: recordOptions.audio,
-    blobPropertyBag: { type: "video/webm" },
+    audio: recordOptions.audio
+      ? {
+          noiseSuppression: true,
+          echoCancellation: true,
+          autoGainControl: true,
+        }
+      : false,
+    blobPropertyBag: { type: "video/webm;codecs=vp9" },
     onStop: async (url, blob) => {
       const file = new File([blob], `screen-recording-${Date.now()}.webm`, {
         type: "video/webm",

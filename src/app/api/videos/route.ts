@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
             Bucket,
             Key: fileName,
             Body,
+            ContentType: "video/webm",
           })
         );
       })
