@@ -34,8 +34,9 @@ export async function POST(request: NextRequest) {
     const response = await Promise.all(
       files.map(async (file) => {
         const Body = (await file.arrayBuffer()) as unknown as Buffer;
-        const fileName = `${userId}/${file.name}`;
         uuid = crypto.randomUUID();
+        const fileName = `${userId}/${uuid}/${file.name}`;
+
         const recording = await prismadb.recordings.create({
           data: {
             userId,
@@ -50,7 +51,8 @@ export async function POST(request: NextRequest) {
             Bucket,
             Key: fileName,
             Body,
-            ContentType: "video/webm",
+            ContentType: file.type, // Use the file's MIME type
+            ContentDisposition: "inline", // Ensure the file is displayed in the browser
           })
         );
       })
@@ -77,7 +79,12 @@ export async function GET() {
         if (item.Key) {
           const url = await getSignedUrl(
             s3,
-            new GetObjectCommand({ Bucket, Key: item.Key }),
+            new GetObjectCommand({
+              Bucket,
+              Key: item.Key,
+              ResponseContentDisposition: "inline",
+              ResponseContentType: "video/webm",
+            }),
             { expiresIn: 3600 }
           );
           const recording = await prismadb.recordings.findFirst({

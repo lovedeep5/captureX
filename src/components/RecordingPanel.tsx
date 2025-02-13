@@ -74,7 +74,6 @@ const RecordingPanel: React.FC = () => {
         a.click();
       }
     },
-    customMediaStream: cameraStream,
   });
 
   useEffect(() => {
@@ -98,7 +97,7 @@ const RecordingPanel: React.FC = () => {
         cameraStream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [recordOptions.frontCamera]);
+  }, [recordOptions.frontCamera, cameraStream, toast]);
 
   const handleStartRecording = () => {
     if (!userId) {
