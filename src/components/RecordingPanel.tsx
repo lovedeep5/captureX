@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import Link from "next/link";
 import { uploadVideo } from "@/gatways/video";
+import useTimer from "@/hooks/timer";
 
 const RecordingPanel: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,11 +28,15 @@ const RecordingPanel: React.FC = () => {
     frontCamera: false,
   });
 
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const timerRef = useRef<number>(0);
   const panelRef = useRef<HTMLDivElement>(null);
+
   const router = useRouter();
   const { userId } = useAuth();
   const { toast } = useToast();
+  const { timer, startTimer, stopTimer, pauseTimer } = useTimer();
 
   const {
     status,
@@ -41,6 +46,10 @@ const RecordingPanel: React.FC = () => {
     resumeRecording,
     isAudioMuted,
   } = useReactMediaRecorder({
+    onStart: () => {
+      startTimer();
+      timerRef.current = timer;
+    },
     video: recordOptions.screen,
     screen: recordOptions.screen,
     audio: recordOptions.audio
@@ -52,12 +61,19 @@ const RecordingPanel: React.FC = () => {
       : false,
     blobPropertyBag: { type: "video/webm;codecs=vp9" },
     onStop: async (url, blob) => {
+      stopTimer();
+      timerRef.current = 0;
       const file = new File([blob], `screen-recording-${Date.now()}.webm`, {
         type: "video/webm",
       });
       const formData = new FormData();
       formData.append("file", file);
-      cameraStream?.getTracks().forEach((track) => track.stop());
+
+      if (cameraStreamRef.current) {
+        cameraStreamRef.current.getTracks().forEach((track) => track.stop());
+        cameraStreamRef.current = null;
+      }
+
       setRecordOptions((prev) => ({ ...prev, frontCamera: false }));
 
       try {
@@ -77,27 +93,27 @@ const RecordingPanel: React.FC = () => {
   });
 
   useEffect(() => {
-    if (recordOptions.frontCamera) {
+    if (recordOptions.frontCamera && !cameraStreamRef.current) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
-        .then((stream) => setCameraStream(stream))
+        .then((stream) => {
+          cameraStreamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
         .catch(() => {
           toast({
             title: "Camera Error",
             description: "Unable to access the front camera.",
           });
         });
-    } else if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
-      setCameraStream(null);
+    } else if (!recordOptions.frontCamera && cameraStreamRef.current) {
+      cameraStreamRef.current.getTracks().forEach((track) => track.stop());
+      cameraStreamRef.current = null;
     }
-    // Cleanup when component unmounts
-    return () => {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [recordOptions.frontCamera, cameraStream, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recordOptions.frontCamera]);
 
   const handleStartRecording = () => {
     if (!userId) {
@@ -125,29 +141,32 @@ const RecordingPanel: React.FC = () => {
     startRecording();
   };
 
+  const handlerPauseRecording = () => {
+    pauseRecording();
+    pauseTimer();
+  };
+
+  const handleResmeRecording = () => {
+    resumeRecording();
+    startTimer();
+  };
   return (
     <>
-      {/* Draggable Recording Panel */}
       <Draggable bounds="#dragable-bounds">
         <div
           ref={panelRef}
           className="flex items-center p-2 rounded-lg fixed z-[100] bottom-20 right-5 bg-primary cursor-move"
         >
-          {/* Front Camera Preview */}
-          {recordOptions.frontCamera && cameraStream && (
+          {recordOptions.frontCamera && (
             <div className="absolute left-[-100px]">
-              <div className="  w-[100px] h-[100px] rounded-full border-2 border-white overflow-hidden">
+              <div className="w-[100px] h-[100px] rounded-full border-2 border-white overflow-hidden">
                 <video
+                  ref={videoRef}
                   autoPlay
                   muted
                   playsInline
                   className="w-full h-full object-cover scale-x-[-1]"
-                  ref={(video) => {
-                    if (video) {
-                      video.srcObject = cameraStream;
-                    }
-                  }}
-                ></video>
+                />
               </div>
             </div>
           )}
@@ -158,9 +177,15 @@ const RecordingPanel: React.FC = () => {
                 isAudioMuted ? "text-red-500" : "text-green-500"
               }`}
             >
-              {isAudioMuted ? "Audio Off" : "Audio On"}
+              {isAudioMuted ? "Audio Off" : "Audio On"} <br />
+              {timer > 0
+                ? `${String(Math.floor(timer / 60)).padStart(2, "0")}:${String(
+                    timer % 60
+                  ).padStart(2, "0")}`
+                : `00:00`}
             </span>
           )}
+
           {status !== "recording" && status !== "paused" && (
             <Button variant="primary" size="sm" onClick={handleStartRecording}>
               <Play className="fill-white" />
@@ -168,7 +193,11 @@ const RecordingPanel: React.FC = () => {
           )}
           {status === "recording" && (
             <>
-              <Button variant="primary" size="sm" onClick={pauseRecording}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handlerPauseRecording}
+              >
                 <Pause className="fill-green-500" />
               </Button>
               <Button
@@ -182,14 +211,13 @@ const RecordingPanel: React.FC = () => {
             </>
           )}
           {status === "paused" && (
-            <Button variant="primary" size="sm" onClick={resumeRecording}>
+            <Button variant="primary" size="sm" onClick={handleResmeRecording}>
               <Play className="fill-green-500" />
             </Button>
           )}
         </div>
       </Draggable>
 
-      {/* Modal for Recording Options */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>
           <DialogHeader>
