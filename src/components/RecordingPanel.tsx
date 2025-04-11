@@ -63,7 +63,9 @@ const RecordingPanel: React.FC = () => {
     onStop: async (url, blob) => {
       stopTimer();
       timerRef.current = 0;
-      const file = new File([blob], `screen-recording-${Date.now()}.webm`, {
+      const arrayBuffer = await blob.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const file = new File([buffer], `screen-recording-${Date.now()}.webm`, {
         type: "video/webm",
       });
       const formData = new FormData();

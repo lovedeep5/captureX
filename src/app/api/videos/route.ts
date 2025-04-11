@@ -8,6 +8,8 @@ import {
   ListObjectsCommandOutput,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Upload } from "@aws-sdk/lib-storage";
+
 import { auth } from "@clerk/nextjs";
 import prismadb from "@/lib/prismadb";
 
@@ -33,7 +35,8 @@ export async function POST(request: NextRequest) {
 
     const response = await Promise.all(
       files.map(async (file) => {
-        const Body = (await file.arrayBuffer()) as unknown as Buffer;
+        const arrayBuffer = await file.arrayBuffer();
+        const Body = Buffer.from(arrayBuffer);
         uuid = crypto.randomUUID();
         const fileName = `${userId}/${uuid}/${file.name}`;
 
@@ -46,15 +49,23 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        return s3.send(
-          new PutObjectCommand({
+        const upload = new Upload({
+          client: s3,
+          params: {
             Bucket,
             Key: fileName,
             Body,
             ContentType: file.type, // Use the file's MIME type
             ContentDisposition: "inline", // Ensure the file is displayed in the browser
-          })
-        );
+          },
+        });
+
+        upload.on("httpUploadProgress", (progress) => {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        });
+
+        const result = await upload.done();
+        return result;
       })
     );
 
