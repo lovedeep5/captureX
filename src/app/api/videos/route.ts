@@ -8,6 +8,8 @@ import {
   ListObjectsCommandOutput,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Upload } from "@aws-sdk/lib-storage";
+
 import { auth } from "@clerk/nextjs";
 import prismadb from "@/lib/prismadb";
 
@@ -46,15 +48,23 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        return s3.send(
-          new PutObjectCommand({
+        const upload = new Upload({
+          client: s3,
+          params: {
             Bucket,
             Key: fileName,
             Body,
             ContentType: file.type, // Use the file's MIME type
             ContentDisposition: "inline", // Ensure the file is displayed in the browser
-          })
-        );
+          },
+        });
+
+        upload.on("httpUploadProgress", (progress) => {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        });
+
+        const result = await upload.done();
+        return result;
       })
     );
 

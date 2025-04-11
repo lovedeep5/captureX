@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.550.0",
+    "@aws-sdk/lib-storage": "^3.787.0",
     "@aws-sdk/s3-request-presigner": "^3.550.0",
     "@clerk/nextjs": "^4.29.9",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
