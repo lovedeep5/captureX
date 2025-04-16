@@ -7,12 +7,16 @@ import Logo from "@/components/Logo";
 
 const Footer = () => {
   return (
-    <div className="w-full h-14 px-4 bg-slate-100 border-t flex items-center dark:bg-background">
-      <div className="md:max-w-screen-2xl mx-auto flex justify-between item-center  w-full ">
+    <div className="w-full h-14 px-4 bg-[#0F172A] border-t border-gray-800 flex items-center">
+      <div className="md:max-w-screen-2xl mx-auto flex justify-between items-center w-full">
         <Logo />
 
         <div className="space-x-4  w-auto">
-          <Button variant="ghost" asChild>
+          <Button
+            variant="ghost"
+            className="text-gray-400 hover:text-white"
+            asChild
+          >
             <Link href="/privacy-policy">Privacy Policy</Link>
           </Button>
         </div>

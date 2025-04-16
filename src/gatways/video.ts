@@ -8,8 +8,21 @@ export const uploadVideo = async (
 export const getAllVideos = async (): Promise<AxiosResponse<any>> =>
   await axios.get(S3_VIDEOS);
 
-export const getVideo = async (filename: string): Promise<AxiosResponse<any>> =>
-  await axios.get(`${S3_SINGLE_VIDEO}?key=${filename}`);
+export const getVideo = async (filename: string) => {
+  try {
+    console.log("Fetching video with key:", filename);
+    console.log("Request URL:", `${S3_SINGLE_VIDEO}?key=${filename}`);
+    const response = await axios.get(`${S3_SINGLE_VIDEO}?key=${filename}`);
+    console.log("Video response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching video details:");
+    console.error("Status:", error?.response?.status);
+    console.error("Error message:", error?.response?.data);
+    console.error("Full error:", error);
+    return null;
+  }
+};
 
 export const deleteVideo = async (key: string): Promise<AxiosResponse<any>> =>
   await axios.delete(`${S3_SINGLE_VIDEO}?key=${key}`);
