@@ -308,7 +308,7 @@ const StartRecordingPage = () => {
                     })}
                     disabled
                   >
-                    <MicOff className="w-7 h-7" strokeWidth={1.2} />
+                    <Mic className={cn("w-7 h-7")} strokeWidth={1.2} />
                   </Button>
                 </div>
 
