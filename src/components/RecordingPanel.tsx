@@ -51,15 +51,27 @@ const RecordingPanel: React.FC = () => {
       timerRef.current = timer;
     },
     video: recordOptions.screen,
-    screen: recordOptions.screen,
+    screen: recordOptions.screen
+      ? {
+          displaySurface: "monitor",
+          frameRate: 30,
+          width: 1920,
+          height: 1080,
+          cursor: "always",
+        }
+      : false,
     audio: recordOptions.audio
       ? {
           noiseSuppression: true,
           echoCancellation: true,
           autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 2,
+          suppressLocalAudioPlayback: true,
+          latency: 0,
         }
       : false,
-    blobPropertyBag: { type: "video/webm;codecs=vp9" },
+    blobPropertyBag: { type: "video/webm;codecs=vp9,opus" },
     onStop: async (url, blob) => {
       stopTimer();
       timerRef.current = 0;
