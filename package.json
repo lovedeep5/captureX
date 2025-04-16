@@ -14,6 +14,7 @@
     "@aws-sdk/s3-request-presigner": "^3.787.0",
     "@clerk/nextjs": "^4.29.9",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@next/eslint-plugin-next": "^14.1.4",

@@ -8,6 +8,7 @@ import "./globals.css";
 import RecordingPanel from "@/components/RecordingPanel";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import StartRecordingPage from "./(pages)/start-recording/page";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -31,7 +32,8 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <RecordingPanel />
+              {/* <RecordingPanel /> */}
+              <StartRecordingPage />
               {children}
             </ThemeProvider>
             <Toaster />

@@ -39,6 +39,8 @@ const Library = () => {
 
   const { data, error, isLoading } = useSWR(S3_VIDEOS, getAllVideos);
 
+  console.log("data ==>>", data);
+
   const handleDeleteClick = (key: string) => {
     setIsDeleteAlertOpen({ open: true, id: key, inProgress: false });
   };

@@ -1,4 +1,4 @@
-import { S3_VIDEOS, S3_SINGLE_VIDEO } from "@/constants";
+import { S3_VIDEOS, S3_SINGLE_VIDEO, EXTERNAL_API_VIDEO } from "@/constants";
 import axios, { AxiosResponse } from "axios";
 
 export const uploadVideo = async (
@@ -19,3 +19,9 @@ export const updateVideoTitle = async (
   payload: FormData
 ): Promise<AxiosResponse<any>> =>
   await axios.put(`${S3_SINGLE_VIDEO}?id=${key}`, payload);
+
+// External API
+export const uploadVideoChunk = async (
+  formData: FormData
+): Promise<AxiosResponse<any>> =>
+  await axios.post(EXTERNAL_API_VIDEO, formData);
