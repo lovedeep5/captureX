@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const PagesLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="h-full relative">
+    <div className="h-full relative bg-[#0F172A]">
       <Navbar />
       <div className="w-full pt-14">
         <div>{children}</div>

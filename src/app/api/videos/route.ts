@@ -12,6 +12,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 
 import { auth } from "@clerk/nextjs";
 import prismadb from "@/lib/prismadb";
+import { trackActivity } from "@/lib/activity";
 
 const Bucket = process.env.AMPLIFY_BUCKET as string;
 const s3 = new S3Client({
@@ -29,9 +30,14 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return new NextResponse("Unauthorised", { status: 401 });
     }
+
     const formData = await request.formData();
     const files = formData.getAll("file") as File[];
-    let uuid;
+    let uuid = "";
+
+    if (!files || files.length === 0) {
+      return new NextResponse("No files found", { status: 400 });
+    }
 
     const response = await Promise.all(
       files.map(async (file) => {
@@ -49,14 +55,20 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Track the creation activity
+        await trackActivity(userId, "RECORDING_CREATED", {
+          videoId: uuid,
+          title: file.name,
+        });
+
         const upload = new Upload({
           client: s3,
           params: {
             Bucket,
             Key: fileName,
             Body,
-            ContentType: file.type, // Use the file's MIME type
-            ContentDisposition: "inline", // Ensure the file is displayed in the browser
+            ContentType: file.type,
+            ContentDisposition: "inline",
           },
         });
 
@@ -71,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ response, uuid });
   } catch (error) {
-    console.log(error);
+    console.error("[VIDEO_CREATE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }

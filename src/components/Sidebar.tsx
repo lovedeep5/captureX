@@ -14,35 +14,35 @@ const routes = [
     link: "/",
     icon: Home,
     color: "text-sky-500",
-    commingSoon: false,
+    comingSoon: false,
   },
   {
     label: "Library",
     link: "/library",
     icon: VideoIcon,
     color: "text-violet-500",
-    commingSoon: false,
+    comingSoon: false,
+  },
+  {
+    label: "Activity",
+    link: "/(userPages)/activity",
+    icon: Activity,
+    color: "text-emerald-500",
+    comingSoon: true,
   },
   {
     label: "Archive",
     link: "#",
     icon: Trash,
     color: "text-pink-700",
-    commingSoon: true,
+    comingSoon: true,
   },
   {
     label: "Settings",
     link: "#",
     icon: Settings,
     color: "text-orange-700",
-    commingSoon: true,
-  },
-  {
-    label: "Activity",
-    link: "#",
-    icon: Activity,
-    color: "text-emerald-500",
-    commingSoon: true,
+    comingSoon: true,
   },
 ];
 
@@ -59,10 +59,8 @@ const Sidebar = () => {
             <route.icon className={cn("w-5 h-5 mr-3", route.color)} />{" "}
             {route.label}
           </div>
-          {route.commingSoon && (
-            <Badge className="bg-sky-800 dark:text-white/80">
-              Comming Soon
-            </Badge>
+          {route.comingSoon && (
+            <Badge className="bg-sky-800 dark:text-white/80">Coming Soon</Badge>
           )}
         </Link>
       ))}
