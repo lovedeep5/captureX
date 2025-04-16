@@ -5,5 +5,5 @@ export const S3_VIDEOS = "/api/videos/";
 export const S3_SINGLE_VIDEO = "/api/video/";
 
 // External APIS
-export const EXTERNAL_API_DOMAIN = "http://localhost:3002";
+export const EXTERNAL_API_DOMAIN = process.env.NEXT_PUBLIC_API_URL;
 export const EXTERNAL_API_VIDEO = `${EXTERNAL_API_DOMAIN}/api/v1/video-chunk`;

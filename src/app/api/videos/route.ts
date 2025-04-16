@@ -97,6 +97,7 @@ export async function GET() {
             }),
             { expiresIn: 3600 }
           );
+
           const recording = await prismadb.recordings.findFirst({
             where: {
               s3_key: item.Key,
