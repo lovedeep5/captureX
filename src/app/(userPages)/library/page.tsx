@@ -1,5 +1,5 @@
 "use client";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useState, useEffect } from "react";
 import useSWR, { mutate } from "swr";
 import Link from "next/link";
 import { Camera, Copy, Edit, ExternalLink, Loader, Trash } from "lucide-react";
@@ -29,7 +29,6 @@ const Library = () => {
     id: null,
     inProgress: false,
   });
-
   const [isRenameAlertOpen, setIsRenameAlertOpen] = useState<RenameAlertType>({
     open: false,
     id: null,
@@ -43,11 +42,16 @@ const Library = () => {
     isLoading,
     mutate: refreshData,
   } = useSWR(S3_VIDEOS, getAllVideos, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    revalidateIfStale: false,
-    dedupingInterval: 60000,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    revalidateIfStale: true,
+    revalidateOnMount: true,
+    dedupingInterval: 0,
   });
+
+  useEffect(() => {
+    refreshData();
+  }, []);
 
   const handleDeleteClick = (key: string) => {
     setIsDeleteAlertOpen({ open: true, id: key, inProgress: false });
@@ -145,16 +149,16 @@ const Library = () => {
           <Loader className="animate-spin text-purple-400 w-8 h-8" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {data?.data?.length ? (
             data.data.map((video: recordingsType) => (
               <Card
                 key={video.Key}
                 className="rounded-xl border border-gray-800 bg-[#1E293B] shadow-lg hover:shadow-purple-500/10 transition-all duration-300"
               >
-                <div className="aspect-video rounded-t-xl overflow-hidden bg-black/20">
+                <div className="relative pb-[56.25%] rounded-t-xl overflow-hidden bg-black/20">
                   <video
-                    className="w-full h-full object-cover"
+                    className="absolute top-0 left-0 w-full h-full object-cover"
                     src={video.url}
                     controls={false}
                     preload="metadata"

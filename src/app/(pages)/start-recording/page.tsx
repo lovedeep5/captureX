@@ -1,9 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { uploadVideoChunk } from "@/gatways/video";
-import Draggable from "react-draggable"; // The default
+import Draggable from "react-draggable";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { checkHealth } from "@/gatways/health";
 
 import {
   Mic,
@@ -16,7 +18,7 @@ import {
   Video,
   VideoOff,
 } from "lucide-react";
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface UserPreferences {
@@ -45,6 +47,13 @@ const StartRecordingPage = () => {
     screen: true,
   });
 
+  useEffect(() => {
+    // Perform health check once when the recording page loads
+    checkHealth().catch((error) => {
+      console.error("Initial health check failed:", error);
+    });
+  }, []);
+
   const startRecording = async () => {
     if (
       userPrerences.screen === false &&
@@ -70,7 +79,7 @@ const StartRecordingPage = () => {
       return;
     }
 
-    if (recording_id) {
+    if (recording_id.current === null) {
       recording_id.current = crypto.randomUUID();
     }
 
@@ -151,14 +160,6 @@ const StartRecordingPage = () => {
     };
 
     mediaRecorder.current.onstop = async () => {
-      const formData = new FormData();
-      formData.append("recording_id", recording_id.current!);
-      formData.append("event", "end_recording");
-      formData.append("userId", userId!);
-      formData.append("token", token!);
-
-      await uploadVideoChunk(formData);
-
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -181,6 +182,7 @@ const StartRecordingPage = () => {
 
     setIsRecording(true);
   };
+
   const stopRecording = async () => {
     setIsUploading(true);
     mediaRecorder.current?.stop();
@@ -235,229 +237,227 @@ const StartRecordingPage = () => {
 
   return (
     <>
-      {!userId ? (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-          <div className="text-center space-y-4">
-            <h1 className="text-2xl font-bold text-foreground">
-              Sign in Required
-            </h1>
-            <p className="text-muted-foreground">
-              Please sign in to start recording.
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg shadow-lg text-center space-y-4">
+            <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto"></div>
+            <p className="text-lg font-medium">Uploading your recording...</p>
+            <p className="text-sm text-muted-foreground">
+              Please wait, this may take a moment
             </p>
-            <Button
-              onClick={() => router.push("/sign-in")}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              Sign In
-            </Button>
           </div>
         </div>
-      ) : (
-        <>
-          {isUploading && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-              <div className="bg-background p-6 rounded-lg shadow-lg text-center space-y-4">
-                <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto"></div>
-                <p className="text-lg font-medium">
-                  Uploading your recording...
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Please wait, this may take a moment
-                </p>
+      )}
+
+      {!isRecording && (
+        <Draggable handle=".ui-handle" bounds="body">
+          <div className="ui-handle flex flex-col gap-2 w-[350px] dark:bg-neutral-300/10 bg-background/80 dark:backdrop-blur-md backdrop-blur-xl rounded-lg shadow-lg dark:border border-[0.5px] border-border/40 fixed bottom-12 right-12 z-50">
+            <div className="w-full h-12 dark:bg-muted/20 bg-muted/30 dark:backdrop-blur-md backdrop-blur-xl dark:border-b border-b border-border/40 flex items-center justify-between px-4 cursor-move">
+              <div className="text-sm dark:text-muted-foreground text-foreground/90">
+                Recording
               </div>
             </div>
-          )}
-          {!isRecording && (
-            <Draggable handle=".ui-handle" bounds="body">
-              <div className="ui-handle flex flex-col gap-2 w-[350px] bg-neutral-300/10 backdrop-blur-md rounded-lg shadow-lg border fixed bottom-12 right-12 z-50">
-                <div className="w-full h-12  bg-muted/20 backdrop-blur-md border-b flex items-center justify-between px-4 cursor-move ">
-                  <div className="text-sm text-muted-foreground">
-                    Recoording
-                  </div>
+            <div className="p-2 step-2 flex gap-2 justify-between">
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full"
+                onClick={() => handleUserPrefrences("camera")}
+                disabled={!userId}
+              >
+                <Video
+                  className={cn("w-7 h-7", {
+                    hidden: !userPrerences.camera,
+                  })}
+                  strokeWidth={1.2}
+                />
+                <VideoOff
+                  className={cn("w-7 h-7", {
+                    hidden: userPrerences.camera,
+                  })}
+                  strokeWidth={1.2}
+                />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full"
+                onClick={() => handleUserPrefrences("screen")}
+                disabled={!userId}
+              >
+                <ScreenShare
+                  className={cn("w-7 h-7", {
+                    hidden: !userPrerences.screen,
+                  })}
+                  strokeWidth={1.2}
+                />
+                <MonitorOff
+                  className={cn("w-7 h-7", {
+                    hidden: userPrerences.screen,
+                  })}
+                  strokeWidth={1.2}
+                />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full"
+                onClick={() => handleUserPrefrences("mic")}
+                disabled={!userId}
+              >
+                <Mic
+                  strokeWidth={1.2}
+                  className={cn("w-7 h-7", { hidden: !userPrerences.mic })}
+                />
+                <MicOff
+                  className={cn("w-7 h-7", { hidden: userPrerences.mic })}
+                  strokeWidth={1.2}
+                />
+              </Button>
+            </div>
+            <div className="p-2">
+              {!userId ? (
+                <div className="text-center space-y-2 p-2">
+                  <p className="text-sm text-muted-foreground">
+                    Sign in required to start recording
+                  </p>
+                  <Button
+                    onClick={() => router.push("/sign-in")}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    Sign In to Record
+                  </Button>
                 </div>
-                <div className="p-2 step-2 flex gap-2 justify-between">
+              ) : (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-full w-full"
+                  onClick={startRecording}
+                >
+                  Start Recording
+                </Button>
+              )}
+            </div>
+          </div>
+        </Draggable>
+      )}
+
+      {isRecording && (
+        <>
+          <Draggable handle=".ui-handle" bounds="body">
+            <div className=" z-50 ui-handle flex flex-col gap-2 w-[350px] dark:bg-muted bg-background/80 dark:backdrop-blur-md backdrop-blur-xl rounded-lg shadow-lg dark:border border-[0.5px] border-border/40 fixed bottom-12 right-12">
+              <div className="w-full h-12 dark:bg-muted bg-muted/30 dark:border-b border-b border-border/40 flex items-center justify-between px-4">
+                <div className="cursor-move text-sm dark:text-muted-foreground text-foreground/90">
+                  Recording
+                </div>
+                <div className="text-sm text-muted-foreground recording-timer p-2 border bg-orange-400 rounded-full text-center text-white w-20">
+                  {Math.floor(timer / 60)
+                    .toString()
+                    .padStart(2, "0")}
+                  {":"}
+                  {Math.floor(timer % 60)
+                    .toString()
+                    .padStart(2, "0")}
+                </div>
+              </div>
+              <div className="flex gap-1 justify-between">
+                <div className="p-2 step-2 flex gap-2">
                   <Button
                     variant="outline"
-                    size="lg"
-                    className="rounded-full"
-                    onClick={() => handleUserPrefrences("camera")}
+                    size="sm"
+                    className={cn("rounded-full", {
+                      hidden: !userPrerences.camera,
+                    })}
+                    disabled
                   >
-                    <Video
-                      className={cn("w-7 h-7", {
-                        hidden: !userPrerences.camera,
-                      })}
-                      strokeWidth={1.2}
+                    <Video className="w-7 h-7" strokeWidth={1.2} />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn("rounded-full", {
+                      hidden: !userPrerences.screen,
+                    })}
+                    disabled
+                  >
+                    <ScreenShare className="w-7 h-7" strokeWidth={1.2} />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn("rounded-full", {
+                      hidden: !userPrerences.mic,
+                    })}
+                    disabled
+                  >
+                    <Mic className={cn("w-7 h-7")} strokeWidth={1.2} />
+                  </Button>
+                </div>
+
+                <div className="p-2 step-2 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full relative"
+                    onClick={stopRecording}
+                  >
+                    <Square
+                      className="w-7 h-7 fill-orange-600"
+                      strokeWidth={0.2}
                     />
-                    <VideoOff
-                      className={cn("w-7 h-7", {
-                        hidden: userPrerences.camera,
-                      })}
-                      strokeWidth={1.2}
+                    <span
+                      className={cn(
+                        "absolute inset-0 rounded-full bg-red-500/30 animate-ping",
+                        {
+                          hidden: isPaused,
+                        }
+                      )}
                     />
                   </Button>
 
                   <Button
                     variant="outline"
-                    size="lg"
-                    className="rounded-full"
-                    onClick={() => handleUserPrefrences("screen")}
+                    size="sm"
+                    className={cn("rounded-full", {
+                      hidden: !isRecording,
+                    })}
+                    onClick={handlePauseRecording}
                   >
-                    <ScreenShare
-                      className={cn("w-7 h-7", {
-                        hidden: !userPrerences.screen,
-                      })}
+                    <Pause
+                      className={cn("w-7 h-7", { hidden: isPaused })}
                       strokeWidth={1.2}
                     />
-                    <MonitorOff
-                      className={cn("w-7 h-7", {
-                        hidden: userPrerences.screen,
-                      })}
+                    <Play
+                      className={cn("w-7 h-7", { hidden: !isPaused })}
                       strokeWidth={1.2}
                     />
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full"
-                    onClick={() => handleUserPrefrences("mic")}
-                  >
-                    <Mic
-                      strokeWidth={1.2}
-                      className={cn("w-7 h-7", { hidden: !userPrerences.mic })}
-                    />
-                    <MicOff
-                      className={cn("w-7 h-7", { hidden: userPrerences.mic })}
-                      strokeWidth={1.2}
-                    />
-                  </Button>
-                </div>
-                <div className="p-2 step-1">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full w-full"
-                    onClick={startRecording}
-                  >
-                    Start Recording
                   </Button>
                 </div>
               </div>
-            </Draggable>
-          )}
-          {isRecording && (
-            <>
-              <Draggable handle=".ui-handle" bounds="body">
-                <div className="z-50 ui-handle flex flex-col gap-2 w-[350px] bg-muted rounded-lg shadow-lg border absolute bottom-12 right-12">
-                  <div className="w-full h-12  bg-muted border-b flex items-center justify-between px-4">
-                    <div className="text-sm text-muted-foreground">
-                      Recoording
-                    </div>
-                    <div className="text-sm text-muted-foreground recording-timer p-2 border bg-orange-400 rounded-full text-center text-white w-20 ">
-                      {Math.floor(timer / 60)
-                        .toString()
-                        .padStart(2, "0")}
-                      {":"}
-                      {Math.floor(timer % 60)
-                        .toString()
-                        .padStart(2, "0")}
-                    </div>
-                  </div>
-                  <div className="flex gap-1 justify-between">
-                    <div className="p-2 step-2 flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn("rounded-full", {
-                          hidden: !userPrerences.camera,
-                        })}
-                        disabled
-                      >
-                        <Video className="w-7 h-7" strokeWidth={1.2} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn("rounded-full", {
-                          hidden: !userPrerences.screen,
-                        })}
-                        disabled
-                      >
-                        <ScreenShare className="w-7 h-7" strokeWidth={1.2} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn("rounded-full", {
-                          hidden: !userPrerences.mic,
-                        })}
-                        disabled
-                      >
-                        <Mic className={cn("w-7 h-7")} strokeWidth={1.2} />
-                      </Button>
-                    </div>
-
-                    <div className="p-2 step-2 flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full relative"
-                        onClick={stopRecording}
-                      >
-                        <Square
-                          className="w-7 h-7 fill-orange-600 "
-                          strokeWidth={0.2}
-                        />
-                        <span
-                          className={cn(
-                            "absolute inset-0 rounded-full bg-red-500/30 animate-ping",
-                            { hidden: isPaused }
-                          )}
-                        />
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn("rounded-full", {
-                          hidden: !isRecording,
-                        })}
-                        onClick={handlePauseRecording}
-                      >
-                        <Pause
-                          className={cn("w-7 h-7", { hidden: isPaused })}
-                          strokeWidth={1.2}
-                        />
-                        <Play
-                          className={cn("w-7 h-7", { hidden: !isPaused })}
-                          strokeWidth={1.2}
-                        />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Draggable>
-            </>
-          )}
-
-          {userPrerences.camera && (
-            <Draggable handle=".camera-handle" bounds="body">
-              <div className="camera-handle inline-block absolute left-12 bottom-12 z-50">
-                <div className="w-[200px] h-[200px] rounded-full overflow-hidden shadow-lg border ">
-                  <video
-                    ref={liveVideoRef}
-                    muted
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    playsInline
-                  >
-                    Your browser does not support HTML video.
-                  </video>
-                </div>
-              </div>
-            </Draggable>
-          )}
+            </div>
+          </Draggable>
         </>
+      )}
+
+      {userPrerences.camera && (
+        <Draggable handle=".camera-handle" bounds="body">
+          <div className="cursor-move camera-handle inline-block fixed left-12 bottom-12 z-50">
+            <div className="w-[200px] h-[200px] rounded-full overflow-hidden shadow-lg dark:border border-[0.5px] border-border/40">
+              <video
+                ref={liveVideoRef}
+                muted
+                className="w-full h-full object-cover"
+                autoPlay
+                playsInline
+              >
+                Your browser does not support HTML video.
+              </video>
+            </div>
+          </div>
+        </Draggable>
       )}
     </>
   );

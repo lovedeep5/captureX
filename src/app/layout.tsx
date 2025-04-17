@@ -43,7 +43,32 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className="dark">
+      <html lang="en" className="dark" suppressHydrationWarning>
+        <head>
+          <title>CaptureX - Screen Recording Made Easy</title>
+          <meta
+            name="description"
+            content="Record, share, and manage your screen recordings with ease. Features include camera overlay, audio recording, and instant sharing."
+          />
+          <meta
+            name="keywords"
+            content="screen recording, video capture, screen capture, video sharing"
+          />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          <meta
+            property="og:title"
+            content="CaptureX - Screen Recording Made Easy"
+          />
+          <meta
+            property="og:description"
+            content="Record, share, and manage your screen recordings with ease."
+          />
+          <meta property="og:type" content="website" />
+          <meta name="twitter:card" content="summary_large_image" />
+        </head>
         <body
           className={`${inter.className} bg-[#0F172A]`}
           id="dragable-bounds"
@@ -55,6 +80,7 @@ export default function RootLayout({
               enableSystem={false}
               forcedTheme="dark"
               disableTransitionOnChange
+              storageKey="capturex-theme"
             >
               <StartRecordingPage />
               {children}

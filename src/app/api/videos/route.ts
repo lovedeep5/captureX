@@ -13,6 +13,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { auth } from "@clerk/nextjs";
 import prismadb from "@/lib/prismadb";
 import { trackActivity } from "@/lib/activity";
+import { revalidatePath } from "next/cache";
 
 const Bucket = process.env.AMPLIFY_BUCKET as string;
 const s3 = new S3Client({
@@ -80,6 +81,10 @@ export async function POST(request: NextRequest) {
         return result;
       })
     );
+
+    // Revalidate both the library page and the API route
+    revalidatePath("/library");
+    revalidatePath("/api/videos");
 
     return NextResponse.json({ response, uuid });
   } catch (error) {
