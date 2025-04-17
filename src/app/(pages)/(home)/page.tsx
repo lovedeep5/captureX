@@ -14,28 +14,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import Head from "next/head";
 
 const montserrat = Montserrat({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
-
-export const metadata = {
-  title: "Professional Screen Recording & Video Sharing Platform",
-  description:
-    "Create and share professional screen recordings instantly. Record your screen, webcam, and audio with crystal-clear quality. Perfect for tutorials, presentations, and video messaging.",
-  openGraph: {
-    images: [
-      {
-        url: "/og-home.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Recoording.com - Professional Screen Recording Platform",
-      },
-    ],
-  },
-};
 
 const Home = () => {
   return (

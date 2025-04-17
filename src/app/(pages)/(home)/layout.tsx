@@ -1,4 +1,4 @@
-import Navbar from "../../components/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "./_components/Footer";
 
 const HomeLayout = ({ children }: { children: React.ReactNode }) => {
