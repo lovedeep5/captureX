@@ -8,6 +8,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { auth } from "@clerk/nextjs";
 import { trackActivity } from "@/lib/activity";
 import prismadb from "@/lib/prismadb";
+import { revalidatePath } from "next/cache";
 
 const Bucket = process.env.AMPLIFY_BUCKET as string;
 const s3 = new S3Client({
@@ -135,6 +136,11 @@ export async function DELETE(request: NextRequest) {
       videoId: key,
       title: recording.title,
     });
+
+    // Revalidate both the library page and the API routes
+    revalidatePath("/library");
+    revalidatePath("/api/videos");
+    revalidatePath("/api/video");
 
     return NextResponse.json({ response });
   } catch (error) {

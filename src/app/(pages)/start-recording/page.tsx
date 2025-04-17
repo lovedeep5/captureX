@@ -4,6 +4,8 @@ import { uploadVideoChunk } from "@/gatways/video";
 import Draggable from "react-draggable";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { checkHealth } from "@/gatways/health";
 
 import {
   Mic,
@@ -44,6 +46,13 @@ const StartRecordingPage = () => {
     camera: false,
     screen: true,
   });
+
+  useEffect(() => {
+    // Perform health check once when the recording page loads
+    checkHealth().catch((error) => {
+      console.error("Initial health check failed:", error);
+    });
+  }, []);
 
   const startRecording = async () => {
     if (

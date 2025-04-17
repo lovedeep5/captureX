@@ -7,6 +7,7 @@ export default authMiddleware({
     "/api/videos",
     "/api/user",
     "/api/video",
+    "/api/comments",
     "/share/(.*)",
     "/share",
   ],
